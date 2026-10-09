@@ -4,6 +4,7 @@ const PORT = 5000;
 const cors = require("cors");
 const connectDB = require("./db");
 const Problem = require("./models/Problem");
+const Note = require("./models/notes");
 
 const app = express();
 app.use(cors());
@@ -32,6 +33,28 @@ app.get("/api/problems", async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+
+ // Save a new note
+app.post("/api/notes", async (req, res) => {
+    try {
+        const note = await Note.create(req.body);
+        res.status(201).json(note);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// Get all saved notes
+app.get("/api/notes", async (req, res) => {
+    try {
+        const notes = await Note.find();
+        res.json(notes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 
 async function startServer() {
     await connectDB();

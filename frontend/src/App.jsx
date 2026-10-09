@@ -4,6 +4,16 @@ import "./App.css";
 function App() {
   const [showForm, setShowForm] = useState(false);
   const [problems, setProblems] = useState([]);
+  const [notes, setNotes] = useState([]);
+  const [showNotes, setShowNotes] = useState(false);
+
+  const [showNoteForm, setShowNoteForm] = useState(false);
+
+const [noteForm, setNoteForm] = useState({
+  title: "",
+  topic: "",
+  content: ""
+});
 
   const [formData, setFormData] = useState({
     title: "",
@@ -18,12 +28,18 @@ function App() {
     revisionStatus: "New"
   });
 
-  useEffect(() => {
-    fetch("http://localhost:5000/api/problems")
-      .then((res) => res.json())
-      .then((data) => setProblems(data))
-      .catch((err) => console.error("Error loading problems:", err));
-  }, []);
+  
+useEffect(() => {
+  fetch("http://localhost:5000/api/problems")
+    .then((res) => res.json())
+    .then((data) => setProblems(data))
+    .catch((err) => console.error("Error loading problems:", err));
+
+  fetch("http://localhost:5000/api/notes")
+    .then((res) => res.json())
+    .then((data) => setNotes(data))
+    .catch((err) => console.error("Error loading notes:", err));
+}, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -31,6 +47,46 @@ function App() {
       [e.target.name]: e.target.value
     });
   };
+
+  
+const handleNoteChange = (e) => {
+  setNoteForm({
+    ...noteForm,
+    [e.target.name]: e.target.value
+  });
+};
+
+const handleSaveNote = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/api/notes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(noteForm)
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to save note");
+    }
+
+    const newNote = await response.json();
+
+    setNotes([...notes, newNote]);
+
+    setNoteForm({
+      title: "",
+      topic: "",
+      content: ""
+    });
+
+    setShowNoteForm(false);
+  } catch (error) {
+    console.error("Error saving note:", error);
+    alert("Could not save note. Please try again.");
+  }
+};
+
 
   const handleSave = async () => {
     try {
@@ -72,7 +128,12 @@ function App() {
       <aside className="sidebar">
         <h2>⚡ DSA Vault</h2>
         <p className="active">📚 All Problems</p>
-        <p>📝 My Notes</p>
+        <p
+  onClick={() => setShowNotes(true)}
+  style={{ cursor: "pointer" }}
+>
+  📝 My Notes
+</p>
         <p>🔖 Bookmarks</p>
         <p>🔄 Revision</p>
       </aside>
@@ -204,7 +265,77 @@ function App() {
           </div>
         )}
 
-        <h2 className="section-title">Your Saved Problems</h2>
+        
+{showNotes && (
+  <section className="notes-section">
+    <h2 className="section-title">📝 My Notes</h2>
+    
+<button onClick={() => setShowNoteForm(true)}>
+  + Add Note
+</button>
+
+{showNoteForm && (
+  <div className="form-box">
+    <h3>Create New Note</h3>
+
+    <input
+      name="title"
+      type="text"
+      placeholder="Note Title"
+      value={noteForm.title}
+      onChange={handleNoteChange}
+    />
+
+    <input
+      name="topic"
+      type="text"
+      placeholder="Topic (Graphs, DP, Arrays...)"
+      value={noteForm.topic}
+      onChange={handleNoteChange}
+    />
+
+    <textarea
+      name="content"
+      placeholder="Write your notes here..."
+      value={noteForm.content}
+      onChange={handleNoteChange}
+    />
+
+    <button onClick={handleSaveNote}>
+      Save Note
+    </button>
+
+    <button onClick={() => setShowNoteForm(false)}>
+      Cancel
+    </button>
+  </div>
+)}
+
+
+    {notes.length === 0 ? (
+      <p>No notes saved yet.</p>
+    ) : (
+      notes.map((note) => (
+        <article className="problem-card" key={note._id}>
+          <div>
+            <h3>{note.title}</h3>
+            <span className="tag">{note.topic}</span>
+            <p>{note.content}</p>
+          </div>
+        </article>
+      ))
+    )}
+
+    <button onClick={() => setShowNotes(false)}>
+      Back to Problems
+    </button>
+  </section>
+)}
+
+
+        {!showNotes && (
+  <>
+    <h2 className="section-title">Your Saved Problems</h2>
 
         <section className="problem-list">
 
@@ -242,6 +373,8 @@ function App() {
           )}
 
         </section>
+          </>
+)}
 
       </main>
     </div>
