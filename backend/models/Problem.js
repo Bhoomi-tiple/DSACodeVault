@@ -48,6 +48,11 @@ const problemSchema = new mongoose.Schema({
         default: ""
     },
 
+    bookmarked: {
+        type: Boolean,
+        default: false
+    },
+
     revisionStatus: {
         type: String,
         enum: ["New", "Need Revision", "Mastered"],
@@ -58,3 +63,5 @@ const problemSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model("Problem", problemSchema);
+
+
