@@ -1,4 +1,4 @@
-# ⚡ DSA Code Vault
+# ⚡ DSACodeVault
 
 <p align="center">
   <strong>Your personal space to save, organize, and revise DSA solutions.</strong>
