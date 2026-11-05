@@ -6,14 +6,22 @@ function App() {
   const [problems, setProblems] = useState([]);
   const [notes, setNotes] = useState([]);
   const [showNotes, setShowNotes] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  const [showRevision, setShowRevision] = useState(false);
+
+  const displayedProblems = showBookmarks
+  ? problems.filter((problem) => problem.bookmarked === true)
+  : showRevision
+  ? problems.filter((problem) => problem.revisionStatus === "Need Revision")
+  : problems;
 
   const [showNoteForm, setShowNoteForm] = useState(false);
 
-const [noteForm, setNoteForm] = useState({
-  title: "",
-  topic: "",
-  content: ""
-});
+  const [noteForm, setNoteForm] = useState({
+    title: "",
+    topic: "",
+    content: ""
+  });
 
   const [formData, setFormData] = useState({
     title: "",
@@ -27,6 +35,69 @@ const [noteForm, setNoteForm] = useState({
     mistakes: "",
     revisionStatus: "New"
   });
+
+  const handleBookmark = async (id) => {
+    try {
+        const response = await fetch(
+            `http://localhost:5000/api/problems/${id}/bookmark`,
+            {
+                method: "PATCH"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to update bookmark");
+        }
+
+        const updatedProblem = await response.json();
+
+        setProblems((prevProblems) =>
+            prevProblems.map((problem) =>
+                problem._id === updatedProblem._id
+                    ? updatedProblem
+                    : problem
+            )
+        );
+    } catch (error) {
+        console.error("Bookmark error:", error);
+        alert("Could not update bookmark. Please try again.");
+    }
+};
+
+const handleRevisionChange = async (id, newStatus) => {
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/problems/${id}/revision`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          revisionStatus: newStatus
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to update revision status");
+    }
+
+    const updatedProblem = await response.json();
+
+    setProblems((prevProblems) =>
+      prevProblems.map((problem) =>
+        problem._id === updatedProblem._id
+          ? updatedProblem
+          : problem
+      )
+    );
+
+  } catch (error) {
+    console.error("Revision update error:", error);
+    alert("Could not update revision status. Please try again.");
+  }
+};
 
   
 useEffect(() => {
@@ -98,6 +169,10 @@ const handleSaveNote = async () => {
         body: JSON.stringify(formData)
       });
 
+      if (!response.ok) {
+        throw new Error("Failed to save problem");
+      }
+
       const newProblem = await response.json();
 
       setProblems([...problems, newProblem]);
@@ -126,18 +201,58 @@ const handleSaveNote = async () => {
     <div className="app">
 
       <aside className="sidebar">
-        <h2>⚡ DSA Vault</h2>
-        <p className="active">📚 All Problems</p>
-        <p
-  onClick={() => setShowNotes(true)}
+  <h2>⚡ DSA Vault</h2>
+
+  <p
+    className={!showNotes && !showBookmarks ? "active" : ""}
+    onClick={() => {
+      setShowNotes(false);
+      setShowBookmarks(false);
+      setShowRevision(false);
+      setShowForm(false);
+    }}
+    style={{ cursor: "pointer" }}
+  >
+    📚 All Problems
+  </p>
+
+  <p
+    className={showNotes ? "active" : ""}
+    onClick={() => {
+      setShowNotes(true);
+      setShowBookmarks(false);
+      setShowForm(false);
+    }}
+    style={{ cursor: "pointer" }}
+  >
+    📝 My Notes
+  </p>
+
+  <p
+    className={showBookmarks ? "active" : ""}
+    onClick={() => {
+      setShowBookmarks(true);
+      setShowNotes(false);
+      setShowForm(false);
+    }}
+    style={{ cursor: "pointer" }}
+  >
+    🔖 Bookmarks
+  </p>
+
+  <p
+  className={showRevision ? "active" : ""}
+  onClick={() => {
+    setShowRevision(true);
+    setShowBookmarks(false);
+    setShowNotes(false);
+    setShowForm(false);
+  }}
   style={{ cursor: "pointer" }}
 >
-  📝 My Notes
+  🔄 Revision
 </p>
-        <p>🔖 Bookmarks</p>
-        <p>🔄 Revision</p>
-      </aside>
-
+</aside>
       <main className="main">
 
         <header>
@@ -335,45 +450,79 @@ const handleSaveNote = async () => {
 
         {!showNotes && (
   <>
-    <h2 className="section-title">Your Saved Problems</h2>
+    <h2 className="section-title">
+  {showBookmarks
+    ? "🔖 Bookmarked Problems"
+    : showRevision
+    ? "🔄 Problems to Revise"
+    : "Your Saved Problems"}
+</h2>
 
-        <section className="problem-list">
+    <section className="problem-list">
+      {displayedProblems.length === 0 ? (
+        <p>
+          {showBookmarks
+  ? "No bookmarks yet. Bookmark a problem to find it here."
+  : showRevision
+  ? "No problems need revision right now. Great work! 🎉"
+  : "No problems saved yet."}
+        </p>
+      ) : (
+        displayedProblems.map((problem) => (
+          <article
+            className="problem-card"
+            key={problem._id}
+          >
+            <div>
+              <h3>{problem.title}</h3>
 
-          {problems.length === 0 ? (
-            <p>No problems saved yet.</p>
-          ) : (
-            problems.map((problem) => (
-              <article
-                className="problem-card"
-                key={problem._id}
+              <p>
+                {problem.approach ||
+                  "No approach added yet."}
+              </p>
+
+              <span className="tag">
+                {problem.topic}
+              </span>
+
+              <span className="tag">
+                {problem.platform}
+              </span>
+            </div>
+
+            <div className="card-actions">
+              <span className="difficulty">
+                {problem.difficulty}
+              </span>
+              <select
+  value={problem.revisionStatus || "New"}
+  onChange={(e) =>
+    handleRevisionChange(problem._id, e.target.value)
+  }
+>
+  <option value="New">New</option>
+  <option value="Need Revision">Need Revision</option>
+  <option value="Mastered">Mastered</option>
+</select>
+              <button
+                type="button"
+                onClick={() => handleBookmark(problem._id)}
+                title={
+                  problem.bookmarked
+                    ? "Remove bookmark"
+                    : "Add bookmark"
+                }
               >
-                <div>
-                  <h3>{problem.title}</h3>
-
-                  <p>
-                    {problem.approach ||
-                      "No approach added yet."}
-                  </p>
-
-                  <span className="tag">
-                    {problem.topic}
-                  </span>
-
-                  <span className="tag">
-                    {problem.platform}
-                  </span>
-                </div>
-
-                <span className="difficulty">
-                  {problem.difficulty}
-                </span>
-
-              </article>
-            ))
-          )}
-
-        </section>
-          </>
+                {problem.bookmarked
+                  ? "🔖 Saved"
+                  : "☆ Bookmark"}
+              </button>
+            </div>
+          </article>
+        ))
+      )}
+    </section>
+  </>
 )}
 
       </main>
