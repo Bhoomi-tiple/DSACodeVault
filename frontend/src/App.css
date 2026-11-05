@@ -380,3 +380,25 @@ header p {
     flex-direction: column;
   }
 }
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-actions button {
+  cursor: pointer;
+  border: 1px solid #8b5cf6;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: inherit;
+  transition: 0.2s ease;
+}
+
+.card-actions button:hover {
+  background: #8b5cf6;
+  color: white;
+}
