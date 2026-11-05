@@ -125,7 +125,6 @@ DSACodeVault/
 
 - GitHub: [Bhoomi-tiple](https://github.com/Bhoomi-tiple)
 - LinkedIn: [Bhoomi Tiple](https://www.linkedin.com/in/bhoomi-tiple-088256330/)
-- LeetCode: [My LeetCode Profile](https://leetcode.com/u/ywkFANnCoq/)
 
 ---
 
