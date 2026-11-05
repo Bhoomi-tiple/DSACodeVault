@@ -55,6 +55,54 @@ app.get("/api/notes", async (req, res) => {
     }
 });
 
+// Toggle bookmark status of a problem
+app.patch("/api/problems/:id/bookmark", async (req, res) => {
+    try {
+        const problem = await Problem.findById(req.params.id);
+
+        if (!problem) {
+            return res.status(404).json({
+                message: "Problem not found"
+            });
+        }
+
+        problem.bookmarked = !problem.bookmarked;
+        await problem.save();
+
+        res.json(problem);
+    } catch (error) {
+        res.status(500).json({
+            message: "Failed to update bookmark",
+            error: error.message
+        });
+    }
+});
+
+app.patch("/api/problems/:id/revision", async (req, res) => {
+  try {
+    const { revisionStatus } = req.body;
+
+    const updatedProblem = await Problem.findByIdAndUpdate(
+      req.params.id,
+      { revisionStatus },
+      { returnDocument: "after", runValidators: true }
+    );
+
+    if (!updatedProblem) {
+      return res.status(404).json({
+        message: "Problem not found"
+      });
+    }
+
+    res.json(updatedProblem);
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update revision status",
+      error: error.message
+    });
+  }
+});
 
 async function startServer() {
     await connectDB();
