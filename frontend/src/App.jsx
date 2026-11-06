@@ -8,6 +8,9 @@ function App() {
   const [showNotes, setShowNotes] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showRevision, setShowRevision] = useState(false);
+  const [theme, setTheme] = useState(() => {
+  return localStorage.getItem("dsa-vault-theme") || "dark";
+});
 
   const displayedProblems = showBookmarks
   ? problems.filter((problem) => problem.bookmarked === true)
@@ -99,6 +102,10 @@ const handleRevisionChange = async (id, newStatus) => {
   }
 };
 
+useEffect(() => {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("dsa-vault-theme", theme);
+}, [theme]);
   
 useEffect(() => {
   fetch("http://localhost:5000/api/problems")
@@ -265,6 +272,15 @@ const handleSaveNote = async () => {
             <span className="count">
               {problems.length} Problems
             </span>
+
+            <button
+  className="theme-toggle"
+  onClick={() =>
+    setTheme(theme === "dark" ? "light" : "dark")
+  }
+>
+  {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+</button>
 
             <button
               className="add-btn"
