@@ -745,3 +745,159 @@ textarea:focus-visible {
   background: #d0cce2;
 }
 
+
+/* ===============================
+   DAILY CODING PLATFORM TRACKER
+================================ */
+
+.tracker-section {
+  margin-top: 30px;
+}
+
+.tracker-date {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 25px 0;
+  flex-wrap: wrap;
+}
+
+.tracker-date label {
+  font-weight: 600;
+}
+
+.tracker-date input {
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color, #ffffff);
+  background: var(--card-bg, #252536);
+  color: var(--text-color, white);
+  font: inherit;
+}
+
+.platform-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 25px;
+  color : white;
+}
+
+.platform-card {
+  background: var(--card-bg, #2c2c41);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 0;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.platform-card:hover {
+  transform: translateY(-4px);
+  border-color: #8b5cf6;
+}
+
+.platform-card h3 {
+  font-size: 21px;
+  margin-top: 0;
+  margin-bottom: 20px;
+  color : white;
+}
+
+.platform-card h4 {
+  margin-top: 25px;
+  margin-bottom: 15px;
+  color : white;
+}
+
+.practice-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color : white;
+}
+
+.practice-checkbox input {
+  width: 17px;
+  height: 17px;
+  accent-color: white;
+  cursor: pointer;
+}
+
+.tracked-question {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.12);
+  overflow-wrap: anywhere;
+}
+
+.question-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.question-input input {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  padding: 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #444);
+  background: var(--input-bg, #1b1b2b);
+  color: var(--text-color, white);
+  font: inherit;
+}
+
+.question-input button,
+.save-activity-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 11px 16px;
+  background: #7954e8;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.question-input button:hover,
+.save-activity-btn:hover {
+  background: #f2f1f3;
+}
+
+.save-activity-btn {
+  margin-top: 28px;
+  padding: 14px 24px;
+}
+
+.save-activity-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive layout */
+
+@media (max-width: 1000px) {
+  .platform-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .platform-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-card {
+    padding: 18px;
+  }
+
+  .tracker-date {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
