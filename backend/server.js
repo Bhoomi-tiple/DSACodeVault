@@ -5,6 +5,7 @@ const cors = require("cors");
 const connectDB = require("./db");
 const Problem = require("./models/Problem");
 const Note = require("./models/notes");
+const DailyActivity = require("./models/dailyactivities");
 
 const app = express();
 app.use(cors());
@@ -103,6 +104,47 @@ app.patch("/api/problems/:id/revision", async (req, res) => {
     });
   }
 });
+
+
+// Get all daily coding activities
+app.get("/api/daily-activities", async (req, res) => {
+    try {
+        const activities = await DailyActivity.find().sort({ date: -1 });
+        res.json(activities);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Save or update daily coding activity
+app.post("/api/daily-activities", async (req, res) => {
+    try {
+        const { date, platforms } = req.body;
+
+        if (!date || !platforms) {
+            return res.status(400).json({
+                message: "Date and platforms are required"
+            });
+        }
+
+        const activity = await DailyActivity.findOneAndUpdate(
+            { date: date },
+            { $set: { platforms: platforms } },
+            {
+                upsert: true,
+                returnDocument: "after",
+                runValidators: true,
+                setDefaultsOnInsert: true
+            }
+        );
+
+        res.status(201).json(activity);
+
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
 
 async function startServer() {
     await connectDB();
