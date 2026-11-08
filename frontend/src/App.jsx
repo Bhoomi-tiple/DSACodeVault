@@ -9,6 +9,7 @@ function App() {
   const [showBookmarks, setShowBookmarks] = useState(false);
   const [showRevision, setShowRevision] = useState(false);
   const [showTracker, setShowTracker] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => {
   const today = new Date();
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -19,7 +20,7 @@ const [dailyActivity, setDailyActivity] = useState([
   { platform: "Coding Ninjas", practiced: false, questions: [] },
   { platform: "Codeforces", practiced: false, questions: [] }
 ]);
-
+const [allDailyActivities, setAllDailyActivities] = useState([]);
 const [questionInputs, setQuestionInputs] = useState({
   "LeetCode": "",
   "Coding Ninjas": "",
@@ -37,6 +38,117 @@ const [activitySaving, setActivitySaving] = useState(false);
     : showRevision
     ? problems.filter((problem) => problem.revisionStatus === "Need Revision")
     : problems;
+
+  // Total questions solved across all platforms
+const totalQuestions = allDailyActivities.reduce(
+  (total, activity) => {
+    return total + activity.platforms.reduce(
+      (count, platform) => count + platform.questions.length,
+      0
+    );
+  },
+  0
+);
+
+// Total days on which at least one platform was used
+const totalActiveDays = allDailyActivities.filter(
+  (activity) =>
+    activity.platforms.some(
+      (platform) =>
+        platform.practiced || platform.questions.length > 0
+    )
+).length;
+
+// Questions solved on each platform
+const platformStats = {
+  "LeetCode": 0,
+  "Coding Ninjas": 0,
+  "Codeforces": 0
+};
+
+// Get today's date in YYYY-MM-DD format
+const today = new Date();
+const todayString =
+  `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+// Get all active dates
+const activeDates = allDailyActivities
+  .filter((activity) =>
+    activity.platforms.some(
+      (platform) =>
+        platform.practiced || platform.questions.length > 0
+    )
+  )
+  .map((activity) => activity.date)
+  .filter((date) => date <= todayString);
+
+const uniqueActiveDates = [...new Set(activeDates)].sort();
+
+// Calculate longest streak
+let longestStreak = 0;
+let currentStreakCount = 0;
+let previousDate = null;
+
+uniqueActiveDates.forEach((date) => {
+  const [year, month, day] = date.split("-").map(Number);
+  const currentDate = new Date(year, month - 1, day);
+
+  if (previousDate) {
+    const difference =
+      (currentDate - previousDate) / (1000 * 60 * 60 * 24);
+
+    if (difference === 1) {
+      currentStreakCount++;
+    } else {
+      currentStreakCount = 1;
+    }
+  } else {
+    currentStreakCount = 1;
+  }
+
+  longestStreak = Math.max(longestStreak, currentStreakCount);
+  previousDate = currentDate;
+});
+
+// Calculate current streak
+let currentStreak = 0;
+
+const todayDate = new Date(
+  today.getFullYear(),
+  today.getMonth(), 
+  today.getDate()
+);
+
+const yesterday = new Date(todayDate);
+yesterday.setDate(yesterday.getDate() - 1);
+
+const latestActiveDate = uniqueActiveDates.length > 0
+  ? uniqueActiveDates[uniqueActiveDates.length - 1]
+  : null;
+
+if (
+  latestActiveDate === todayString ||
+  latestActiveDate ===
+    `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`
+) {
+  currentStreak = currentStreakCount;
+}
+
+allDailyActivities.forEach((activity) => {
+  activity.platforms.forEach((platform) => {
+    platformStats[platform.platform] += platform.questions.length;
+  });
+});
+
+  // Prepare last 30 days for activity calendar
+const last30Days = Array.from({ length: 30 }, (_, index) => {
+  const date = new Date();
+  date.setDate(date.getDate() - (29 - index));
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+});
+
+const activeDateSet = new Set(activeDates);
 
   const [showNoteForm, setShowNoteForm] = useState(false);
 
@@ -223,6 +335,7 @@ const handleSaveActivity = async () => {
       return res.json();
     })
     .then((activities) => {
+      setAllDailyActivities(activities);
       const savedActivity = activities.find(
         (activity) => activity.date === selectedDate
       );
@@ -340,28 +453,43 @@ const handleSaveActivity = async () => {
     <div className="app">
       <aside className="sidebar">
         <h2>⚡ DSA Vault</h2>
-
         <p
-          className={
-            !showNotes && !showBookmarks && !showRevision && !showTracker
-              ? "active"
-              : ""
-          }
-          onClick={() => {
-            setShowNotes(false);
-            setShowBookmarks(false);
-            setShowRevision(false);
-            setShowTracker(false);
-            setShowForm(false);
-          }}
-          style={{ cursor: "pointer" }}
-        >
-          📚 All Problems
-        </p>
+  className={showDashboard ? "active" : ""}
+  onClick={() => {
+    setShowDashboard(true);
+    setShowNotes(false);
+    setShowBookmarks(false);
+    setShowRevision(false);
+    setShowTracker(false);
+    setShowForm(false);
+  }}
+  style={{ cursor: "pointer" }}
+>
+  📈 Dashboard
+</p>
+        <p
+  className={
+    !showDashboard && !showNotes && !showBookmarks && !showRevision && !showTracker
+      ? "active"
+      : ""
+  }
+  onClick={() => {
+    setShowDashboard(false);
+    setShowNotes(false);
+    setShowBookmarks(false);
+    setShowRevision(false);
+    setShowTracker(false);
+    setShowForm(false);
+  }}
+  style={{ cursor: "pointer" }}
+>
+  📚 All Problems
+</p>
 
         <p
           className={showNotes ? "active" : ""}
           onClick={() => {
+            setShowDashboard(false);
             setShowNotes(true);
             setShowBookmarks(false);
             setShowRevision(false);
@@ -376,6 +504,7 @@ const handleSaveActivity = async () => {
         <p
           className={showBookmarks ? "active" : ""}
           onClick={() => {
+            setShowDashboard(false);
             setShowBookmarks(true);
             setShowNotes(false);
             setShowRevision(false);
@@ -390,6 +519,7 @@ const handleSaveActivity = async () => {
         <p
           className={showRevision ? "active" : ""}
           onClick={() => {
+            setShowDashboard(false);
             setShowRevision(true);
             setShowBookmarks(false);
             setShowNotes(false);
@@ -404,6 +534,7 @@ const handleSaveActivity = async () => {
         <p
           className={showTracker ? "active" : ""}
           onClick={() => {
+            setShowDashboard(false);
             setShowTracker(true);
             setShowRevision(false);
             setShowBookmarks(false);
@@ -448,6 +579,89 @@ const handleSaveActivity = async () => {
           <h2>Keep learning. Keep solving. 🚀</h2>
           <p>Every problem you solve makes you a better developer.</p>
         </section>
+        {showDashboard && (
+  <section className="dashboard-section">
+
+    <h2 className="section-title">📈 Your Coding Dashboard</h2>
+
+    <div className="dashboard-grid">
+
+      <div className="dashboard-card">
+        <h3>Total Questions Solved</h3>
+        <h2>{totalQuestions}</h2>
+      </div>
+
+      <div className="dashboard-card">
+        <h3>Total Active Days</h3>
+        <h2>{totalActiveDays}</h2>
+      </div>
+
+      <div className="dashboard-card">
+        <h3>Current Streak 🔥</h3>
+        <h2>{currentStreak} Days</h2>
+      </div>
+
+      <div className="dashboard-card">
+        <h3>Longest Streak 🏆</h3>
+        <h2>{longestStreak} Days</h2>
+      </div>
+
+    </div>
+
+    <h2 className="section-title">Platform-wise Progress</h2>
+
+    <div className="platform-stats">
+
+      <div className="dashboard-card">
+        <h3>LeetCode</h3>
+        <h2>{platformStats["LeetCode"]}</h2>
+        <p>Questions Solved</p>
+      </div>
+
+      <div className="dashboard-card">
+        <h3>Coding Ninjas</h3>
+        <h2>{platformStats["Coding Ninjas"]}</h2>
+        <p>Questions Solved</p>
+      </div>
+
+      <div className="dashboard-card">
+        <h3>Codeforces</h3>
+        <h2>{platformStats["Codeforces"]}</h2>
+        <p>Questions Solved</p>
+      </div>
+
+    </div>
+    <h2 className="section-title">📅 Coding Activity</h2>
+
+<div className="activity-calendar">
+
+  <p className="calendar-description">
+    Your coding activity over the last 30 days
+  </p>
+
+  <div className="calendar-grid">
+
+    {last30Days.map((date) => (
+      <div
+        key={date}
+        className={`calendar-day ${activeDateSet.has(date) ? "active-day" : ""}`}
+        title={date}
+      >
+      </div>
+    ))}
+
+  </div>
+
+  <div className="calendar-legend">
+    <span>Less</span>
+    <div className="legend-box inactive-day"></div>
+    <div className="legend-box active-day"></div>
+    <span>More</span>
+  </div>
+
+</div>
+  </section>
+)}
 
         {showForm && (
           <div className="form-box">
@@ -686,7 +900,7 @@ const handleSaveActivity = async () => {
   </section>
 )}
 
-        {!showNotes && !showTracker && (
+        {!showDashboard && !showNotes && !showTracker && (
           <>
             <h2 className="section-title">
               {showBookmarks
