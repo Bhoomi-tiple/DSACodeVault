@@ -4,6 +4,7 @@ import "./App.css";
 function App() {
   const [showForm, setShowForm] = useState(false);
   const [problems, setProblems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [notes, setNotes] = useState([]);
   const [showNotes, setShowNotes] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
@@ -38,6 +39,10 @@ const [activitySaving, setActivitySaving] = useState(false);
     : showRevision
     ? problems.filter((problem) => problem.revisionStatus === "Need Revision")
     : problems;
+
+  const searchedProblems = displayedProblems.filter((problem) =>
+  problem.title.toLowerCase().includes(searchTerm.toLowerCase())
+);
 
   // Total questions solved across all platforms
 const totalQuestions = allDailyActivities.reduce(
@@ -910,8 +915,17 @@ const handleSaveActivity = async () => {
                 : "Your Saved Problems"}
             </h2>
 
+            <div className="search-container">
+  <input
+    type="text"
+    placeholder="🔍 Search problems by title..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+  />
+</div>
+
             <section className="problem-list">
-              {displayedProblems.length === 0 ? (
+              {searchedProblems.length === 0 ? (
                 <p>
                   {showBookmarks
                     ? "No bookmarks yet. Bookmark a problem to find it here."
@@ -920,7 +934,7 @@ const handleSaveActivity = async () => {
                     : "No problems saved yet."}
                 </p>
               ) : (
-                displayedProblems.map((problem) => (
+                searchedProblems.map((problem) => (
                   <article
                     className="problem-card"
                     key={problem._id}
