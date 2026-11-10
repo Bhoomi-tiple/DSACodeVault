@@ -5,6 +5,8 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [problems, setProblems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [difficultyFilter, setDifficultyFilter] = useState("All");
+  const [sortOrder, setSortOrder] = useState("newest");
   const [notes, setNotes] = useState([]);
   const [showNotes, setShowNotes] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
@@ -42,6 +44,16 @@ const [activitySaving, setActivitySaving] = useState(false);
 
   const searchedProblems = displayedProblems.filter((problem) =>
   problem.title.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+const filteredProblems = searchedProblems.filter((problem) =>
+  difficultyFilter === "All" || problem.difficulty === difficultyFilter
+);
+
+const sortedProblems = [...filteredProblems].sort((a, b) =>
+  sortOrder === "newest"
+    ? new Date(b.createdAt) - new Date(a.createdAt)
+    : new Date(a.createdAt) - new Date(b.createdAt)
 );
 
   // Total questions solved across all platforms
@@ -916,6 +928,31 @@ const handleSaveActivity = async () => {
             </h2>
 
             <div className="search-container">
+              <select
+  value={sortOrder}
+  onChange={(e) => setSortOrder(e.target.value)}
+>
+  <option value="newest">Newest First</option>
+  <option value="oldest">Oldest First</option>
+</select>
+              <select
+  value={difficultyFilter}
+  onChange={(e) => setDifficultyFilter(e.target.value)}
+>
+  <option value="All">All Difficulties</option>
+  <option value="Easy">Easy</option>
+  <option value="Medium">Medium</option>
+  <option value="Hard">Hard</option>
+</select>
+<button
+  type="button"
+  onClick={() => {
+    setSearchTerm("");
+    setDifficultyFilter("All");
+  }}
+>
+  Clear Filters
+</button>
   <input
     type="text"
     placeholder="🔍 Search problems by title..."
@@ -925,7 +962,7 @@ const handleSaveActivity = async () => {
 </div>
 
             <section className="problem-list">
-              {searchedProblems.length === 0 ? (
+              {filteredProblems.length === 0 ? (
                 <p>
                   {showBookmarks
                     ? "No bookmarks yet. Bookmark a problem to find it here."
@@ -934,7 +971,7 @@ const handleSaveActivity = async () => {
                     : "No problems saved yet."}
                 </p>
               ) : (
-                searchedProblems.map((problem) => (
+                sortedProblems.map((problem) => (
                   <article
                     className="problem-card"
                     key={problem._id}
