@@ -1021,3 +1021,18 @@ textarea:focus-visible {
   border-color: #8055f7;
   box-shadow: 0 0 0 3px rgba(128, 85, 247, 0.12);
 }
+
+.search-container button {
+  padding: 12px 18px;
+  margin-left: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #8055f7;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.search-container button:hover {
+  opacity: 0.85;
+}
