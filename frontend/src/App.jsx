@@ -6,6 +6,7 @@ function App() {
   const [problems, setProblems] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("All");
+  const [topicFilter, setTopicFilter] = useState("All");
   const [sortOrder, setSortOrder] = useState("newest");
   const [notes, setNotes] = useState([]);
   const [showNotes, setShowNotes] = useState(false);
@@ -54,6 +55,10 @@ const sortedProblems = [...filteredProblems].sort((a, b) =>
   sortOrder === "newest"
     ? new Date(b.createdAt) - new Date(a.createdAt)
     : new Date(a.createdAt) - new Date(b.createdAt)
+);
+
+const topicFilteredProblems = sortedProblems.filter((problem) =>
+  topicFilter === "All" || problem.topic === topicFilter
 );
 
   // Total questions solved across all platforms
@@ -929,6 +934,17 @@ const handleSaveActivity = async () => {
 
             <div className="search-container">
               <select
+  value={topicFilter}
+  onChange={(e) => setTopicFilter(e.target.value)}
+>
+  <option value="All">All Topics</option>
+  {[...new Set(problems.map((problem) => problem.topic))].map((topic) => (
+    <option key={topic} value={topic}>
+      {topic}
+    </option>
+  ))}
+</select>
+              <select
   value={sortOrder}
   onChange={(e) => setSortOrder(e.target.value)}
 >
@@ -948,6 +964,7 @@ const handleSaveActivity = async () => {
   type="button"
   onClick={() => {
     setSearchTerm("");
+    setTopicFilter("All");
     setDifficultyFilter("All");
   }}
 >
@@ -962,7 +979,7 @@ const handleSaveActivity = async () => {
 </div>
 
             <section className="problem-list">
-              {filteredProblems.length === 0 ? (
+              {topicFilteredProblems.length === 0 ? (
                 <p>
                   {showBookmarks
                     ? "No bookmarks yet. Bookmark a problem to find it here."
@@ -971,7 +988,7 @@ const handleSaveActivity = async () => {
                     : "No problems saved yet."}
                 </p>
               ) : (
-                sortedProblems.map((problem) => (
+                topicFilteredProblems.map((problem) => (
                   <article
                     className="problem-card"
                     key={problem._id}
