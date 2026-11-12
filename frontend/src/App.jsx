@@ -7,6 +7,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("All");
   const [topicFilter, setTopicFilter] = useState("All");
+  const [platformFilter, setPlatformFilter] = useState("All");
   const [sortOrder, setSortOrder] = useState("newest");
   const [notes, setNotes] = useState([]);
   const [showNotes, setShowNotes] = useState(false);
@@ -59,6 +60,11 @@ const sortedProblems = [...filteredProblems].sort((a, b) =>
 
 const topicFilteredProblems = sortedProblems.filter((problem) =>
   topicFilter === "All" || problem.topic === topicFilter
+);
+
+const platformFilteredProblems = topicFilteredProblems.filter((problem) =>
+  platformFilter === "All" ||
+problem.platform.trim().toLowerCase() === platformFilter
 );
 
   // Total questions solved across all platforms
@@ -933,62 +939,95 @@ const handleSaveActivity = async () => {
             </h2>
 
             <div className="search-container">
-              <select
-  value={topicFilter}
-  onChange={(e) => setTopicFilter(e.target.value)}
->
-  <option value="All">All Topics</option>
-  {[...new Set(problems.map((problem) => problem.topic))].map((topic) => (
-    <option key={topic} value={topic}>
-      {topic}
-    </option>
-  ))}
-</select>
-              <select
-  value={sortOrder}
-  onChange={(e) => setSortOrder(e.target.value)}
->
-  <option value="newest">Newest First</option>
-  <option value="oldest">Oldest First</option>
-</select>
-              <select
-  value={difficultyFilter}
-  onChange={(e) => setDifficultyFilter(e.target.value)}
->
-  <option value="All">All Difficulties</option>
-  <option value="Easy">Easy</option>
-  <option value="Medium">Medium</option>
-  <option value="Hard">Hard</option>
-</select>
-<button
-  type="button"
-  onClick={() => {
-    setSearchTerm("");
-    setTopicFilter("All");
-    setDifficultyFilter("All");
-  }}
->
-  Clear Filters
-</button>
+
+  {/* Topic Filter */}
+  <select
+    value={topicFilter}
+    onChange={(e) => setTopicFilter(e.target.value)}
+  >
+    <option value="All">All Topics</option>
+
+    {[...new Set(problems.map((problem) => problem.topic))].map((topic) => (
+      <option key={topic} value={topic}>
+        {topic}
+      </option>
+    ))}
+  </select>
+
+  {/* Platform Filter */}
+  <select
+    value={platformFilter}
+    onChange={(e) => setPlatformFilter(e.target.value)}
+  >
+    <option value="All">All Platforms</option>
+
+    {[...new Set(
+  problems.map((problem) => problem.platform.trim().toLowerCase())
+)].map((platform) => (
+  <option key={platform} value={platform}>
+    {platform === "code 360" || platform === "code360"
+      ? "Code360"
+      : platform === "codeforces"
+      ? "Codeforces"
+      : platform}
+  </option>
+))}
+  </select>
+
+  {/* Sort */}
+  <select
+    value={sortOrder}
+    onChange={(e) => setSortOrder(e.target.value)}
+  >
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+  </select>
+
+  {/* Difficulty Filter */}
+  <select
+    value={difficultyFilter}
+    onChange={(e) => setDifficultyFilter(e.target.value)}
+  >
+    <option value="All">All Difficulties</option>
+    <option value="Easy">Easy</option>
+    <option value="Medium">Medium</option>
+    <option value="Hard">Hard</option>
+  </select>
+
+  {/* Clear Filters */}
+  <button
+    type="button"
+    onClick={() => {
+      setSearchTerm("");
+      setTopicFilter("All");
+      setDifficultyFilter("All");
+      setPlatformFilter("All");
+    }}
+  >
+    Clear Filters
+  </button>
+
+  {/* Search */}
   <input
     type="text"
     placeholder="🔍 Search problems by title..."
     value={searchTerm}
     onChange={(e) => setSearchTerm(e.target.value)}
   />
+
 </div>
 
             <section className="problem-list">
-              {topicFilteredProblems.length === 0 ? (
+              {platformFilteredProblems.length === 0 ? (
                 <p>
                   {showBookmarks
                     ? "No bookmarks yet. Bookmark a problem to find it here."
                     : showRevision
                     ? "No problems need revision right now. Great work! 🎉"
-                    : "No problems saved yet."}
+                    : "No matching problems found. Try changing or clearing your filters."}
                 </p>
               ) : (
-                topicFilteredProblems.map((problem) => (
+                platformFilteredProblems.map((problem) => (
                   <article
                     className="problem-card"
                     key={problem._id}
